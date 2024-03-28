@@ -15,6 +15,5 @@ defmodule Demo.Accounts.Profile do
     attribute :history, :string
     attribute :tags, {:array, :string}, default: []
     attribute :metadata, :map
-    attribute :nested_embed, Demo.Accounts.NestedEmbed
   end
 end

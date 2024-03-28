@@ -134,7 +134,7 @@ defmodule AshAdmin.Components.Resource.Form do
           phx-submit="save"
           phx-target={@myself}
           autocomplete={false}
-          id="form"
+          id={"#{@id}_form"}
         >
           <.input
             :for={kv <- form.hidden}
@@ -625,31 +625,31 @@ defmodule AshAdmin.Components.Resource.Form do
   defp unwrap_type({:array, type}), do: unwrap_type(type)
   defp unwrap_type(type), do: type
 
-  def render_attribute_input(assigns, attribute, form, value \\ nil, name \\ nil, id \\ nil)
+  def render_attribute_input(assigns, attribute, form, value \\ nil, name \\ nil)
 
-  def render_attribute_input(assigns, %{type: Ash.Type.Date} = attribute, form, value, name, id) do
-    assigns = assign(assigns, form: form, value: value, name: name, attribute: attribute, id: id)
+  def render_attribute_input(assigns, %{type: Ash.Type.Date} = attribute, form, value, name) do
+    assigns = assign(assigns, form: form, value: value, name: name, attribute: attribute)
 
     ~H"""
     <.input
       type="date"
       value={value(@value, @form, @attribute)}
       name={@name || @form.name <> "[#{@attribute.name}]"}
-      id={@id || @form.id <> "_#{@attribute.name}"}
+      id={@form.id <> "_#{@attribute.name}"}
     />
     """
   end
 
-  def render_attribute_input(assigns, %{type: type} = attribute, form, value, name, id)
+  def render_attribute_input(assigns, %{type: type} = attribute, form, value, name)
       when type in [Ash.Type.UtcDatetime, Ash.Type.UtcDatetimeUsec] do
-    assigns = assign(assigns, form: form, value: value, name: name, attribute: attribute, id: id)
+    assigns = assign(assigns, form: form, value: value, name: name, attribute: attribute)
 
     ~H"""
     <.input
       type="datetime-local"
       value={value(@value, @form, @attribute)}
       name={@name || @form.name <> "[#{@attribute.name}]"}
-      id={@id || @form.id <> "_#{@attribute.name}"}
+      id={@form.id <> "_#{@attribute.name}"}
     />
     """
   end
@@ -662,17 +662,16 @@ defmodule AshAdmin.Components.Resource.Form do
         } = attribute,
         form,
         value,
-        name,
-        id
+        name
       ) do
-    assigns = assign(assigns, attribute: attribute, form: form, value: value, name: name, id: id)
+    assigns = assign(assigns, attribute: attribute, form: form, value: value, name: name)
 
     ~H"""
     <.input
       type="checkbox"
       value={value(@value, @form, @attribute)}
       name={@name || @form.name <> "[#{@attribute.name}]"}
-      id={@id || @form.id <> "_#{@attribute.name}"}
+      id={@form.id <> "_#{@attribute.name}"}
     />
     """
   end
@@ -684,15 +683,14 @@ defmodule AshAdmin.Components.Resource.Form do
         } = attribute,
         form,
         value,
-        name,
-        id
+        name
       ) do
-    assigns = assign(assigns, attribute: attribute, form: form, value: value, name: name, id: id)
+    assigns = assign(assigns, attribute: attribute, form: form, value: value, name: name)
 
     ~H"""
     <.input
       type="select"
-      id={@id || @form.id <> "_#{@attribute.name}"}
+      id={@form.id <> "_#{@attribute.name}"}
       name={@name || @form.name <> "[#{@attribute.name}]"}
       options={[True: "true", False: "false"]}
       value={value(@value, @form, @attribute, "true")}
@@ -700,7 +698,7 @@ defmodule AshAdmin.Components.Resource.Form do
     """
   end
 
-  def render_attribute_input(assigns, %{type: Ash.Type.Binary}, _form, _value, _name, _id) do
+  def render_attribute_input(assigns, %{type: Ash.Type.Binary}, _form, _value, _name) do
     ~H"""
     <span class="italic">(binary fields cannot be edited)</span>
     """
@@ -714,8 +712,7 @@ defmodule AshAdmin.Components.Resource.Form do
         } = attribute,
         form,
         value,
-        name,
-        id
+        name
       )
       when type in [Ash.Type.CiString, Ash.Type.String, Ash.Type.UUID, Ash.Type.Atom] do
     assigns =
@@ -725,8 +722,7 @@ defmodule AshAdmin.Components.Resource.Form do
         value: value,
         type: type,
         name: name,
-        default: default,
-        id: id
+        default: default
       )
 
     ~H"""
@@ -734,7 +730,7 @@ defmodule AshAdmin.Components.Resource.Form do
       <% @type == Ash.Type.Atom && @attribute.constraints[:one_of] -> %>
         <.input
           type="select"
-          id={@id || @form.id <> "_#{@attribute.name}"}
+          id={@form.id <> "_#{@attribute.name}"}
           options={Enum.map(@attribute.constraints[:one_of] || [], &{to_name(&1), &1})}
           value={value(@value, @form, @attribute, default_atom_list_value(@attribute))}
           prompt={allow_nil_option(@attribute, @value)}
@@ -743,20 +739,20 @@ defmodule AshAdmin.Components.Resource.Form do
       <% markdown?(@form.source.resource, @attribute) -> %>
         <div
           phx-hook="MarkdownEditor"
-          id={if @id, do: @id <> "_container", else: @form.id <> "_#{@attribute.name}_container"}
+          id={@form.id <> "_#{@attribute.name}_container"}
           phx-update="ignore"
           data-target-id={@form.id <> "_#{@attribute.name}"}
           class="prose max-w-none"
         >
           <textarea
-            id={@id || @id || @form.id <> "_#{@attribute.name}"}
+            id={@form.id <> "_#{@attribute.name}"}
             class="prose max-w-none"
             name={@name || @form.name <> "[#{@attribute.name}]"}
           ><%= value(@value, @form, @attribute) || "" %></textarea>
         </div>
       <% long_text?(@form.source.resource, @attribute) -> %>
         <textarea
-          id={@id || @form.id <> "_#{@attribute.name}"}
+          id={@form.id <> "_#{@attribute.name}"}
           name={@name || @form.name <> "[#{@attribute.name}]"}
           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md resize-y"
           phx-hook="MaintainAttrs"
@@ -766,7 +762,7 @@ defmodule AshAdmin.Components.Resource.Form do
       <% short_text?(@form.source.resource, @attribute) -> %>
         <.input
           type={text_input_type(@form.source.resource, @attribute)}
-          id={@id || @form.id <> "_#{@attribute.name}"}
+          id={@form.id <> "_#{@attribute.name}"}
           value={value(@value, @form, @attribute)}
           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
           name={@name || @form.name <> "[#{@attribute.name}]"}
@@ -776,7 +772,7 @@ defmodule AshAdmin.Components.Resource.Form do
         <.input
           type={text_input_type(@form.source.resource, @attribute)}
           placeholder={placeholder(@default)}
-          id={@id || @form.id <> "_#{@attribute.name}"}
+          id={@form.id <> "_#{@attribute.name}"}
           value={value(@value, @form, @attribute)}
           class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
           name={@name || @form.name <> "[#{@attribute.name}]"}
@@ -790,13 +786,12 @@ defmodule AshAdmin.Components.Resource.Form do
         %{type: {:array, Ash.Type.Map}} = attribute,
         form,
         value,
-        name,
-        id
+        name
       ) do
-    render_attribute_input(assigns, %{attribute | type: Ash.Type.Map}, form, value, name, id)
+    render_attribute_input(assigns, %{attribute | type: Ash.Type.Map}, form, value, name)
   end
 
-  def render_attribute_input(assigns, %{type: Ash.Type.Map} = attribute, form, value, name, id) do
+  def render_attribute_input(assigns, %{type: Ash.Type.Map} = attribute, form, value, name) do
     encoded = Jason.encode!(value(value, form, attribute))
 
     assigns =
@@ -805,8 +800,7 @@ defmodule AshAdmin.Components.Resource.Form do
         form: form,
         value: value,
         name: name,
-        encoded: encoded,
-        id: id
+        encoded: encoded
       )
 
     ~H"""
@@ -815,7 +809,7 @@ defmodule AshAdmin.Components.Resource.Form do
         phx-hook="JsonEditor"
         phx-update="ignore"
         data-input-id={@form.id <> "_#{@attribute.name}"}
-        id={if @id, do: @id <> "_json", else: @form.id <> "_#{@attribute.name}_json"}
+        id={@form.id <> "_#{@attribute.name}_json"}
       />
 
       <.input
@@ -824,7 +818,7 @@ defmodule AshAdmin.Components.Resource.Form do
         data-editor-id={@form.id <> "_#{@attribute.name}_json"}
         value={@encoded}
         name={@name || @form.name <> "[#{@attribute.name}]"}
-        id={@id || @form.id <> "_#{@attribute.name}"}
+        id={@form.id <> "_#{@attribute.name}"}
         class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
       />
     </div>
@@ -842,14 +836,13 @@ defmodule AshAdmin.Components.Resource.Form do
       """
   end
 
-  def render_attribute_input(assigns, attribute, form, value, name, id) do
+  def render_attribute_input(assigns, attribute, form, value, name) do
     assigns =
       assign(assigns,
         attribute: attribute,
         form: form,
         value: value,
-        name: name,
-        id: id
+        name: name
       )
 
     ~H"""
@@ -876,11 +869,7 @@ defmodule AshAdmin.Components.Resource.Form do
             assigns,
             inner_form.source.resource,
             inner_form.source.source.action,
-            %{
-              inner_form
-              | id: @id || @form.id <> "_#{@attribute.name}",
-                name: @name || @form.name <> "[#{@attribute.name}]"
-            }
+            inner_form
           ) %>
         </.inputs_for>
         <button
@@ -904,31 +893,16 @@ defmodule AshAdmin.Components.Resource.Form do
           name={@name || @form.name <> "[#{@attribute.name}]"}
         />
       <% true -> %>
-        <%= render_fallback_attribute(assigns, @form, @attribute, @value, @name, @id) %>
+        <%= render_fallback_attribute(assigns, @form, @attribute, @value, @name) %>
     <% end %>
     """
   end
 
-  defp render_fallback_attribute(
-         assigns,
-         form,
-         %{type: {:array, type}} = attribute,
-         value,
-         name,
-         id
-       ) do
+  defp render_fallback_attribute(assigns, form, %{type: {:array, type}} = attribute, value, name) do
     name = name || form.name <> "[#{attribute.name}]"
-    id = id || form.id <> "_#{attribute.name}"
 
     assigns =
-      assign(assigns,
-        form: form,
-        attribute: attribute,
-        type: type,
-        value: value,
-        name: name,
-        id: id
-      )
+      assign(assigns, form: form, attribute: attribute, type: type, value: value, name: name)
 
     ~H"""
     <div>
@@ -939,10 +913,12 @@ defmodule AshAdmin.Components.Resource.Form do
         <%= render_attribute_input(
           assigns,
           %{@attribute | type: @type, constraints: @attribute.constraints[:items] || []},
-          @form,
+          %{
+            @form
+            | params: %{"#{@attribute.name}" => @form.params["#{@attribute.name}"]["#{index}"]}
+          },
           {:list_value, this_value},
-          @name <> "[#{index}]",
-          @id <> "_#{index}"
+          @name <> "[#{index}]"
         ) %>
         <button
           type="button"
@@ -970,7 +946,7 @@ defmodule AshAdmin.Components.Resource.Form do
     """
   end
 
-  defp render_fallback_attribute(assigns, form, attribute, value, name, id) do
+  defp render_fallback_attribute(assigns, form, attribute, value, name) do
     casted_value = Phoenix.HTML.Safe.to_iodata(value(value, form, attribute))
 
     assigns =
@@ -979,8 +955,7 @@ defmodule AshAdmin.Components.Resource.Form do
         form: form,
         attribute: attribute,
         value: value,
-        name: name,
-        id: id
+        name: name
       )
 
     ~H"""
@@ -989,7 +964,7 @@ defmodule AshAdmin.Components.Resource.Form do
       placeholder={placeholder(@attribute.default)}
       value={@casted_value}
       name={@name || @form.name <> "[#{@attribute.name}]"}
-      id={@id || @form.id <> "_#{@attribute.name}"}
+      id={@form.id <> "_#{@attribute.name}"}
       class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
     />
     """
@@ -1005,7 +980,7 @@ defmodule AshAdmin.Components.Resource.Form do
             placeholder={placeholder(@attribute.default)}
             value={@value}
             name={@name || @form.name <> "[#{@attribute.name}]"}
-            id={@id || @form.id <> "_#{@attribute.name}"}
+            id={@form.id <> "_#{@attribute.name}"}
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
           />
           """
@@ -1017,7 +992,7 @@ defmodule AshAdmin.Components.Resource.Form do
             disabled
             value="..."
             name={@name || @form.name <> "[#{@attribute.name}]"}
-            id={@id || @form.id <> "_#{@attribute.name}"}
+            id={@form.id <> "_#{@attribute.name}"}
             class="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
           />
           """
@@ -1200,21 +1175,28 @@ defmodule AshAdmin.Components.Resource.Form do
   end
 
   def handle_event("append_value", %{"path" => path, "field" => field}, socket) do
-    list =
-      AshPhoenix.Form.get_form(socket.assigns.form, path)
-      |> AshPhoenix.Form.value(String.to_existing_atom(field))
-      |> Kernel.||([])
-      |> indexed_list()
-      |> append_to_and_map(nil)
+    form =
+      AshPhoenix.Form.update_form(
+        socket.assigns.form,
+        path,
+        fn adding_form ->
+          new_value =
+            adding_form
+            |> AshPhoenix.Form.value(String.to_existing_atom(field))
+            |> Kernel.||([])
+            |> indexed_list()
+            |> append_to_and_map(nil)
 
-    params =
-      put_in_creating(
-        socket.assigns.form.params || %{},
-        Enum.map(AshPhoenix.Form.parse_path!(socket.assigns.form, path) ++ [field], &to_string/1),
-        list
+          new_params =
+            Map.put(
+              adding_form.params,
+              field,
+              new_value
+            )
+
+          AshPhoenix.Form.validate(adding_form, new_params)
+        end
       )
-
-    form = AshPhoenix.Form.validate(socket.assigns.form, params)
 
     {:noreply,
      socket

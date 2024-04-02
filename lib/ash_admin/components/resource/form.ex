@@ -854,6 +854,52 @@ defmodule AshAdmin.Components.Resource.Form do
 
     ~H"""
     <%= cond do %>
+      <% match?({:array, {:array, _}}, @attribute.type) -> %>
+        <%= render_fallback_attribute(assigns, @form, @attribute, @value, @name, @id) %>
+      <% match?({:array, _}, @attribute.type) && Ash.Type.embedded_type?(@attribute.type) -> %>
+        <.inputs_for :let={inner_form} field={@form[@attribute.name]}>
+          <.input
+            :for={kv <- inner_form.hidden}
+            name={inner_form.name <> "[#{elem(kv, 0)}]"}
+            value={elem(kv, 1)}
+            type="hidden"
+          />
+          <button
+            type="button"
+            phx-click="remove_form"
+            phx-target={@myself}
+            phx-value-path={inner_form.name}
+            class="flex h-6 w-6 mt-2 border-gray-600 hover:bg-gray-400 rounded-md justify-center items-center"
+          >
+            <.icon name="hero-minus" class="h-4 w-4 text-gray-500" />
+          </button>
+
+          <%= render_attributes(
+            assigns,
+            inner_form.source.resource,
+            inner_form.source.source.action,
+            %{
+              inner_form
+              | id:
+                  "#{@id}_#{inner_form.index}" ||
+                    @form.id <> "_#{@attribute.name}_#{inner_form.index}",
+                name:
+                  "#{@id}[#{inner_form.index}]" ||
+                    @form.name <> "[#{@attribute.name}][#{inner_form.index}]"
+            }
+          ) %>
+        </.inputs_for>
+        <button
+          :if={can_append_embed?(@form.source.source, @attribute.name)}
+          type="button"
+          phx-click="add_form"
+          phx-target={@myself}
+          phx-value-pkey={embedded_type_pkey(@attribute.type)}
+          phx-value-path={@name || @form.name <> "[#{@attribute.name}]"}
+          class="flex h-6 w-6 mt-2 border-gray-600 hover:bg-gray-400 rounded-md justify-center items-center"
+        >
+          <.icon name="hero-plus" class="h-4 w-4 text-gray-500" />
+        </button>
       <% Ash.Type.embedded_type?(@attribute.type) -> %>
         <.inputs_for :let={inner_form} field={@form[@attribute.name]}>
           <.input

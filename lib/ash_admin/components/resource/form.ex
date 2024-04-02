@@ -880,12 +880,8 @@ defmodule AshAdmin.Components.Resource.Form do
             inner_form.source.source.action,
             %{
               inner_form
-              | id:
-                  "#{@id}_#{inner_form.index}" ||
-                    @form.id <> "_#{@attribute.name}_#{inner_form.index}",
-                name:
-                  "#{@id}[#{inner_form.index}]" ||
-                    @form.name <> "[#{@attribute.name}][#{inner_form.index}]"
+              | id: nested_form_id(@id, @form.id, @attribute.name, inner_form),
+                name: nested_form_name(@name, @form.name, @attribute.name, inner_form)
             }
           ) %>
         </.inputs_for>
@@ -953,6 +949,22 @@ defmodule AshAdmin.Components.Resource.Form do
         <%= render_fallback_attribute(assigns, @form, @attribute, @value, @name, @id) %>
     <% end %>
     """
+  end
+
+  defp nested_form_id(id, form_id, attribute_name, inner_form) do
+    if id do
+      "#{id}_#{inner_form.index}"
+    else
+      "#{form_id}_#{attribute_name}_#{inner_form.index}"
+    end
+  end
+
+  defp nested_form_name(name, form_name, attribute_name, inner_form) do
+    if name do
+      "#{name}[#{inner_form.index}]"
+    else
+      "#{form_name}[#{attribute_name}][#{inner_form.index}]"
+    end
   end
 
   defp render_fallback_attribute(

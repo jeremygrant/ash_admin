@@ -61,6 +61,16 @@ defmodule Demo.Accounts.User do
     update :update, primary?: true
     update :update2
     destroy :destroy
+
+    update :add_another_user do
+      accept []
+      argument :new_user, Demo.Accounts.NewUser, allow_nil?: false
+    end
+
+    update :add_moar_users do
+      accept []
+      argument :new_users, {:array, Demo.Accounts.NewUser}, allow_nil?: false
+    end
   end
 
   postgres do
